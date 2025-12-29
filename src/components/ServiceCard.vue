@@ -1,57 +1,66 @@
 <template>
-  <div class="card">
-    <header class="card-header">
-      <h3 class="title">{{ service.name }}</h3>
+  <div class="card h-100">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h3 class="h6 m-0">{{ service.name }}</h3>
       <span class="badge" :class="badgeClass">
         <template v-if="result?.online">Online</template>
         <template v-else-if="!loading && result">Offline</template>
         <template v-else>Loading</template>
       </span>
-    </header>
-    <section class="content">
+    </div>
+    <div class="card-body">
       <template v-if="result?.online">
-        <pre v-if="result?.data">{{ pretty(result.data) }}</pre>
-        <pre v-else>(no JSON body)</pre>
+        <pre
+          v-if="result?.data"
+          class="mb-0"
+        ><code>{{ pretty(result.data) }}</code></pre>
+        <p v-else class="mb-0 text-muted fst-italic">(no JSON body)</p>
       </template>
       <template v-else-if="!loading && result">
-        <p>Offline</p>
-        <p v-if="result.statusCode">Status: {{ result.statusCode }}</p>
-        <p v-if="result.error">Error: {{ result.error }}</p>
+        <p class="mb-1 fw-semibold">Offline</p>
+        <p v-if="result.statusCode" class="mb-1">
+          Status: {{ result.statusCode }}
+        </p>
+        <p v-if="result.error" class="mb-0 text-muted">
+          Error: {{ result.error }}
+        </p>
       </template>
       <template v-else>
-        <p>Loading...</p>
+        <p class="mb-0 text-muted">Loading...</p>
       </template>
-    </section>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   service: { type: Object, required: true },
   result: { type: Object, required: false },
   loading: { type: Boolean, required: true },
-})
+});
 
 const badgeClass = computed(() => {
-  if (props.result?.online) return 'green'
-  if (!props.loading && props.result && !props.result.online) return 'red'
-  return 'gray'
-})
+  if (props.result?.online) return "bg-success";
+  if (!props.loading && props.result && !props.result.online)
+    return "bg-danger";
+  return "bg-secondary";
+});
 
 function pretty(obj) {
-  try { return JSON.stringify(obj, null, 2) } catch { return String(obj) }
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return String(obj);
+  }
 }
 </script>
 
 <style scoped>
-.card { border:1px solid #e5e7eb; border-radius:8px; background:#fff; overflow:hidden; display:flex; flex-direction:column; }
-.card-header { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid #e5e7eb; }
-.title { margin:0; font-size:16px; font-weight:600; }
-.badge { padding:2px 8px; border-radius:999px; font-size:12px; color:#111; border:1px solid transparent; }
-.badge.green { background:#dcfce7; border-color:#16a34a; }
-.badge.red { background:#fee2e2; border-color:#dc2626; }
-.badge.gray { background:#f3f4f6; border-color:#9ca3af; }
-.content { padding:12px 14px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:13px; overflow:auto; }
+pre {
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+}
 </style>

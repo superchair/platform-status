@@ -1,33 +1,23 @@
 <template>
-  <header
-    style="
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid #eee;
-    "
-  >
-    <h1 style="margin: 0; font-size: 18px">Vibe + Auth0</h1>
-    <nav style="display: flex; gap: 8px; align-items: center">
-      <LoginButton />
-      <LogoutButton />
-      <Profile />
-    </nav>
-  </header>
-  <main style="padding: 16px">
+  <nav class="navbar navbar-light bg-light border-bottom">
+    <div
+      class="container d-flex align-items-center justify-content-between py-2"
+    >
+      <span class="navbar-brand mb-0 h1">Vibe + Auth0</span>
+      <div class="d-flex align-items-center gap-2">
+        <LoginButton />
+        <LogoutButton />
+        <Profile />
+      </div>
+    </div>
+  </nav>
+  <main class="container my-3">
     <router-view />
   </main>
-  <footer
-    style="
-      padding: 16px;
-      color: #666;
-      border-top: 1px solid #eee;
-      font-size: 12px;
-    "
-  >
-    Local dev on http://localhost:5173
+  <footer class="border-top py-3">
+    <div class="container text-muted small">
+      Local dev on http://localhost:5173
+    </div>
   </footer>
 </template>
 

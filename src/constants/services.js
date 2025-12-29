@@ -17,8 +17,8 @@ export const SERVICES = [
     devPath: "/unreachable/info",
     prodUrl: "https://unreachable.dev.autoverify.services/info",
   },
-]
+];
 
 export function getServiceUrl(service) {
-  return import.meta.env.DEV ? service.devPath : service.prodUrl
+  return import.meta.env.DEV ? service.devPath : service.prodUrl;
 }

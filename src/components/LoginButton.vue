@@ -1,16 +1,24 @@
 <template>
-  <button v-if="!isAuthenticated" :disabled="isLoading" @click="login">
+  <button
+    v-if="!isAuthenticated"
+    :disabled="isLoading"
+    class="btn btn-primary"
+    @click="login"
+  >
     Log In
   </button>
-  
 </template>
 
 <script setup>
-import { useAuth0 } from '@auth0/auth0-vue'
-import { useRoute } from 'vue-router'
+import { useAuth0 } from "@auth0/auth0-vue";
 
-const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
-const route = useRoute()
+const { loginWithPopup, isAuthenticated, isLoading } = useAuth0();
 
-const login = () => loginWithRedirect({ appState: { target: route.fullPath } })
+async function login() {
+  try {
+    await loginWithPopup();
+  } catch (e) {
+    console.error("Login popup failed:", e);
+  }
+}
 </script>
