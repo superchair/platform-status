@@ -45,7 +45,7 @@ export const SERVICES_BY_CLUSTER = CLUSTERS.reduce((acc, cluster) => {
       devPath: `${devPrefix}/${s.name}/info`,
       url: `https://${host}/info`,
     };
-  });
+  }).sort((a, b) => a.name.localeCompare(b.name));
   return acc;
 }, {});
 
