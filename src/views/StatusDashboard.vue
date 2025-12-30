@@ -29,7 +29,7 @@
         />
       </div>
     </div>
-    <div v-else class="alert alert-warning" role="alert">
+    <div v-else-if="!isLoading" class="alert alert-warning" role="alert">
       You need to log in to view service status. Use the Log In button in the
       header to authenticate.
     </div>
@@ -45,7 +45,7 @@ import { useRouter } from "vue-router";
 
 const { services, results, loading, lastUpdated, refresh } =
   useStatusDashboard();
-const { isAuthenticated } = useAuth0();
+const { isAuthenticated, isLoading } = useAuth0();
 const router = useRouter();
 
 onMounted(() => {

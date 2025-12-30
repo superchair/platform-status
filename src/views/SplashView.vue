@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-5">
+  <div v-if="!isLoading && !isAuthenticated" class="container py-5">
     <div class="row justify-content-center">
       <div class="col-12 col-md-8 col-lg-6">
         <div class="card">
@@ -22,7 +22,7 @@ import { useRouter } from "vue-router";
 import { useAuth0 } from "@auth0/auth0-vue";
 import LoginButton from "../components/LoginButton.vue";
 
-const { isAuthenticated } = useAuth0();
+const { isAuthenticated, isLoading } = useAuth0();
 const router = useRouter();
 
 onMounted(() => {
