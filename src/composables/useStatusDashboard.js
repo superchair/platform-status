@@ -1,9 +1,14 @@
 import { reactive, ref, onMounted } from "vue";
-import { SERVICES, getServiceUrl } from "../constants/services";
+import {
+  CLUSTERS,
+  SERVICES_BY_CLUSTER,
+  getServiceUrl,
+} from "../constants/services";
 import { getServiceStatus } from "../services/statusApi";
 
 export function useStatusDashboard() {
-  const services = SERVICES;
+  const clusters = CLUSTERS;
+  const servicesByCluster = SERVICES_BY_CLUSTER;
   const results = reactive(new Map());
   const loading = ref(false);
   const lastUpdated = ref(null);
@@ -12,16 +17,24 @@ export function useStatusDashboard() {
 
   const runRefresh = async () => {
     loading.value = true;
-    const tasks = services.map(async (s) => {
-      const res = await getServiceStatus(getServiceUrl(s));
-      return { name: s.name, res };
+    const tasks = [];
+    clusters.forEach((cluster) => {
+      servicesByCluster[cluster].forEach((s) => {
+        tasks.push(
+          (async () => {
+            const res = await getServiceStatus(getServiceUrl(s, cluster));
+            return { key: `${cluster}::${s.name}`, res };
+          })()
+        );
+      });
     });
     const settled = await Promise.allSettled(tasks);
     settled.forEach((s) => {
       if (s.status === "fulfilled") {
-        results.set(s.value.name, s.value.res);
+        results.set(s.value.key, s.value.res);
       } else {
-        results.set("unknown", {
+        const key = s.reason?.key || "unknown";
+        results.set(key, {
           online: false,
           statusCode: 0,
           error: s.reason?.message || "Unknown error",
@@ -40,7 +53,14 @@ export function useStatusDashboard() {
 
   onMounted(() => refresh());
 
-  return { services, results, loading, lastUpdated, refresh };
+  return {
+    clusters,
+    servicesByCluster,
+    results,
+    loading,
+    lastUpdated,
+    refresh,
+  };
 }
 
 export default useStatusDashboard;

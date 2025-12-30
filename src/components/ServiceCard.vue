@@ -1,7 +1,7 @@
 <template>
   <div class="card h-100">
     <div class="card-header d-flex align-items-center justify-content-between">
-      <h3 class="h6 m-0">{{ service.name }}</h3>
+      <h3 class="h6 m-0">{{ service.host }}</h3>
       <span class="badge" :class="badgeClass">
         <template v-if="result?.online">Online</template>
         <template v-else-if="!loading && result">Offline</template>
