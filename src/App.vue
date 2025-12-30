@@ -14,7 +14,6 @@
   <main class="container my-3">
     <router-view />
   </main>
-  
 </template>
 
 <script setup>

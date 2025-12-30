@@ -9,7 +9,13 @@ export const CLUSTERS = [
 export const BASE_SERVICES = [
   { name: "dealer-service" },
   { name: "consumer-core" },
-  { name: "unreachable" },
+  { name: "lender-aggregator-proxy-service" },
+  { name: "otp-service" },
+  { name: "crm-integration-service" },
+  { name: "vin-decoder" },
+  { name: "inventory-core-service" },
+  { name: "url-shortener" },
+  { name: "consumer-authentication-service" },
 ];
 
 function hostForCluster(serviceName, cluster) {
