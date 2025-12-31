@@ -72,6 +72,29 @@ Notes:
 - Dev proxies: Vite dev-only proxies do not exist in NGINX; production calls go directly to HTTPS service hosts. Ensure CORS allows `http://localhost:5173` on those services.
 - Runtime config: `VITE_*` are baked at build. Changing them requires rebuild unless you add a runtime injection layer.
 
+### Service access in Docker
+
+The container includes NGINX reverse proxy routes for dev/staging/prod clusters, and builds default to proxy mode.
+
+- Default: `VITE_USE_PROXY=true` causes the SPA to call cluster-prefixed paths (e.g., `/dev/<service>/info`), which NGINX proxies to the appropriate service hosts. This avoids CORS.
+- Direct mode: If services are CORS-standardized and publicly reachable, you can disable proxying by rebuilding with `--build-arg VITE_USE_PROXY=false`. In that case, the SPA calls the HTTPS service hosts directly.
+
+Examples:
+
+Proxy mode (default):
+
+```zsh
+DOCKER_BUILDKIT=1 docker build -t platform-status .
+docker run --rm -p 5173:5173 platform-status
+```
+
+Direct mode (disable proxying):
+
+```zsh
+DOCKER_BUILDKIT=1 docker build --build-arg VITE_USE_PROXY=false -t platform-status .
+docker run --rm -p 5173:5173 platform-status
+```
+
 ## Private npm registries (CodeArtifact)
 
 If dependencies are from a private registry (e.g., AWS CodeArtifact), use Docker BuildKit secrets to provide your `.npmrc` at build time without baking credentials into the image.

@@ -50,6 +50,7 @@ export const SERVICES_BY_CLUSTER = CLUSTERS.reduce((acc, cluster) => {
 }, {});
 
 export function getServiceUrl(service, cluster) {
-  // In dev, use the proxy path; otherwise full https host
-  return import.meta.env.DEV ? service.devPath : service.url;
+  // Use proxy path in dev or when explicitly enabled via VITE_USE_PROXY
+  const useProxy = import.meta.env.VITE_USE_PROXY === "true";
+  return import.meta.env.DEV || useProxy ? service.devPath : service.url;
 }

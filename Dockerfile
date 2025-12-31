@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json package-lock.json* ./
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc,required=false npm ci
 
 # Copy source (including .env.local for VITE_* at build time)
 COPY . .
@@ -16,12 +16,14 @@ COPY . .
 ARG VITE_AUTH0_DOMAIN
 ARG VITE_AUTH0_CLIENT_ID
 ARG VITE_AUTH0_AUDIENCE
-ENV VITE_AUTH0_DOMAIN=${VITE_AUTH0_DOMAIN}
-ENV VITE_AUTH0_CLIENT_ID=${VITE_AUTH0_CLIENT_ID}
-ENV VITE_AUTH0_AUDIENCE=${VITE_AUTH0_AUDIENCE}
+ARG VITE_USE_PROXY=true
 
-# Build static assets
-RUN npm run build
+# Build static assets (prefer .env.local; override via build args if provided)
+RUN VITE_AUTH0_DOMAIN=$VITE_AUTH0_DOMAIN \
+	VITE_AUTH0_CLIENT_ID=$VITE_AUTH0_CLIENT_ID \
+	VITE_AUTH0_AUDIENCE=$VITE_AUTH0_AUDIENCE \
+	VITE_USE_PROXY=$VITE_USE_PROXY \
+	npm run build
 
 # --- Serve stage ---
 FROM nginx:alpine
