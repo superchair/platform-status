@@ -1,0 +1,12 @@
+# Reduce Docker build context size
+node_modules
+npm-debug.log*
+yarn-error.log*
+.pnpm-store
+.git
+.gitignore
+.DS_Store
+coverage
+# Exclude local build artifacts (we build inside the container)
+dist
+# Do NOT ignore .env.local so VITE_* can be used at build time

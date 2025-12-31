@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 
 const StatusDashboard = () => import("../views/StatusDashboard.vue");
 const SplashView = () => import("../views/SplashView.vue");
+const CallbackView = () => import("../views/CallbackView.vue");
 
 const routes = [
   { path: "/", redirect: "/splash" },
@@ -14,6 +15,11 @@ const routes = [
     path: "/status",
     name: "status",
     component: StatusDashboard,
+  },
+  {
+    path: "/callback",
+    name: "callback",
+    component: CallbackView,
   },
 ];
 

@@ -1,53 +1,116 @@
-# Vibe + Auth0 (Vue 3 + Vite)
+# Platform Service Status Radiator (Vue 3 + Vite)
 
-A minimal Vue 3 app (Vite) with Auth0 login protecting a simple Hello World route.
+Clustered status dashboard protected by Auth0, built with Vue 3 and Vite.
 
-## Quick start
+## Prerequisites
 
-1) Copy env file and fill in your Auth0 values:
+- Node.js 18+ (for local dev)
+- Docker (optional, for containerized run)
+- Auth0 SPA application credentials
 
-- Domain: `your-tenant.us.auth0.com`
-- Client ID: SPA application client ID
+## Environment
 
-```sh
-cp .env.example .env.local
-```
+Create `.env.local` with your Auth0 values (used at build time by Vite):
 
-Edit `.env.local`:
-
-```sh
-VITE_AUTH0_DOMAIN=your-tenant.us.auth0.com
-VITE_AUTH0_CLIENT_ID=abc123YourClientId
+```zsh
+VITE_AUTH0_DOMAIN=dev-vb8cbvl4lozme5lp.us.auth0.com
+VITE_AUTH0_CLIENT_ID=IojqxVGVuP1mdos6bOFReOOUVsXiJTNV
 # VITE_AUTH0_AUDIENCE=https://api.example.com
 ```
 
-2) Configure Auth0 Application (Single Page App):
+Auth0 allowlists (for local runs on port `5173`):
 
 - Allowed Callback URLs: `http://localhost:5173`
 - Allowed Logout URLs: `http://localhost:5173`
 - Allowed Web Origins: `http://localhost:5173`
 
-Tip: If you sometimes use `127.0.0.1`, add 
-`http://127.0.0.1:5173` and `http://127.0.0.1:5173/callback` too.
+If you access the container via a different host (e.g., `http://127.0.0.1:5173` or your machine IP), add those exact origins to **Allowed Web Origins** as well. The popup flow requires an exact origin match.
 
-3) Install and run:
+## Local Development
 
-```sh
+Run the Vite dev server on `5173`:
+
+```zsh
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — you’ll be redirected to Auth0 before accessing `/hello`.
+## Production Build (Preview)
 
-## Notes
+Build and preview the production bundle on `5173`:
 
-- Redirect style: This app uses origin-only redirect. If you prefer a dedicated `/callback` route, set `redirect_uri` in `src/main.js` to `${window.location.origin}/callback` and change Allowed Callback accordingly.
-- Port stability: Vite is pinned to `5173` with `strictPort` to avoid allowlist mismatches.
-- Silent auth on Safari/Brave: If needed for dev, you can enable `useRefreshTokens` and `cacheLocation: 'localstorage'` in `src/main.js` (commented), noting the XSS trade-offs.
+```zsh
+npm install
+npm run build
+npm run preview -- --host 0.0.0.0 --port 5173
+```
 
-## Structure
+## Docker (NGINX on port 5173)
 
-- `src/main.js`: Vue app + Auth0 plugin
-- `src/router/index.js`: Routes with `authGuard` on `/hello`
-- `src/views/HelloWorld.vue`: Protected page
-- `src/components/LoginButton.vue`, `LogoutButton.vue`, `Profile.vue`
+Multi-stage image builds the app and serves via NGINX listening on `5173`.
+
+Build using `.env.local` (recommended):
+
+```zsh
+docker build -t platform-status .
+docker run --rm -p 5173:5173 platform-status
+```
+
+Alternatively, override `VITE_*` at build time:
+
+```zsh
+docker build \
+	--build-arg VITE_AUTH0_DOMAIN=dev-vb8cbvl4lozme5lp.us.auth0.com \
+	--build-arg VITE_AUTH0_CLIENT_ID=IojqxVGVuP1mdos6bOFReOOUVsXiJTNV \
+	-t platform-status .
+docker run --rm -p 5173:5173 platform-status
+```
+
+Notes:
+
+- SPA routing: NGINX is configured with `try_files $uri /index.html;` so routes like `/status` and `/splash` work.
+- Dev proxies: Vite dev-only proxies do not exist in NGINX; production calls go directly to HTTPS service hosts. Ensure CORS allows `http://localhost:5173` on those services.
+- Runtime config: `VITE_*` are baked at build. Changing them requires rebuild unless you add a runtime injection layer.
+
+## Private npm registries (CodeArtifact)
+
+If dependencies are from a private registry (e.g., AWS CodeArtifact), use Docker BuildKit secrets to provide your `.npmrc` at build time without baking credentials into the image.
+
+- Enable BuildKit and mount your local `.npmrc`:
+
+```zsh
+DOCKER_BUILDKIT=1 docker build \
+	--secret id=npmrc,src=$HOME/.npmrc \
+	-t platform-status .
+```
+
+- The `Dockerfile` uses `RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci` in the builder stage, which reads the secret `.npmrc` only during the install step.
+
+- Optional: generate a short-lived token `.npmrc` (example with CodeArtifact; replace placeholders):
+
+```zsh
+TOKEN=$(aws codeartifact get-authorization-token \
+	--domain <domain> \
+	--domain-owner <account_id> \
+	--query authorizationToken --output text)
+
+cat > /tmp/npmrc <<'EOF'
+always-auth=true
+@your-scope:registry=https://<domain>-<repo>.codeartifact.<region>.amazonaws.com/npm/<repo>/
+//<domain>-<repo>.codeartifact.<region>.amazonaws.com/npm/<repo>/:_authToken=${TOKEN}
+EOF
+
+DOCKER_BUILDKIT=1 docker build \
+	--secret id=npmrc,src=/tmp/npmrc \
+	-t platform-status .
+```
+
+- Fallback (least secure): install on host and build without registry access:
+	- Run `npm ci` locally, then build the image; this approach avoids credentials in Docker but couples the image to local `node_modules` state.
+
+## App Highlights
+
+- Auth0 popup login with origin-only redirect
+- Tabs per cluster (dev/staging/prod) with per-tab refresh
+- Bootstrap layout; service cards capped to two columns
+- Services listed alphabetically per cluster
